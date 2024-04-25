@@ -1,3 +1,21 @@
+"""
+Script de Benchmark para MySQL
+Versão: 1.1
+Autor: Acáciolr-DBA
+
+Este script realiza operações de benchmark em um banco de dados MySQL,
+incluindo criação de tabela, inserção de registros, criação de índices, etc.
+
+Versões:
+1.0 - [25-04-2024]: Versão inicial do script
+1.1 - [25-04-2024]: Adicionado tratamento de exceções mais específico, refatoração do código,
+                    comentários explicativos e sistema básico de versionamento.
+1.2 - [25-04-2024]: Inclusão do drop table na função "create_table"
+1.3 - [25-04-2024]: Ajustes na função de drop do index
+1.4 - [25-04-2024]: Inclusão da rotina que simula lock na tabela
+
+"""
+
 import time
 import random
 import mysql.connector
@@ -43,7 +61,7 @@ def insert_records(cursor, num_records):
 # Função para criar um índice na tabela
 def create_index(cursor):
     try:
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_data ON benchmark_table (data)")
+        cursor.execute("CREATE INDEX idx_data ON benchmark_table (data)")
         return True
     except mysql.connector.Error as err:
         print("Erro ao criar índice:", err)
