@@ -1,0 +1,69 @@
+Métricas de Benchmark:
+Operação: update
+Operação: update
+Operação: delete
+Operação: select
+Operação: lock
+Bloqueio de tabela por 2 minutos
+Operação: update
+Operação: lock
+Bloqueio de tabela por 2 minutos
+Operação: insert
+Operação: update
+Operação: lock
+Bloqueio de tabela por 2 minutos
+
+Métricas finais:
+Tempo total de execução: 300.0 segundos
+Número total de operações: 10
+Número de operações bem-sucedidas: 10
+Taxa de operações por segundo: 0.03333333333333333
+Tempo médio de execução por operação: 30.0 segundos
+
+Métricas de Sistema:
+Consumo médio de CPU: 21.64%
+Número de CPUs: 16
+Execução 1: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 15431.73828125 MB
+  Memória usada: 16065.43359375 MB
+Execução 2: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 15439.67578125 MB
+  Memória usada: 16057.1953125 MB
+Execução 3: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 15430.78125 MB
+  Memória usada: 16059.7265625 MB
+Execução 4: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 15428.921875 MB
+  Memória usada: 16060.69921875 MB
+Execução 5: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 15430.15234375 MB
+  Memória usada: 16059.2578125 MB
+Execução 6: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 14376.66796875 MB
+  Memória usada: 16239.4140625 MB
+Execução 7: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 14376.34375 MB
+  Memória usada: 16240.23828125 MB
+Execução 8: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 14266.64453125 MB
+  Memória usada: 16269.2421875 MB
+Execução 9: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 14266.98046875 MB
+  Memória usada: 16268.265625 MB
+Execução 10: 
+  Total de memória: 32768.0 MB
+  Memória disponível: 14274.65625 MB
+  Memória usada: 16260.8828125 MB
+
+Operações realizadas: ['update', 'update', 'delete', 'select', 'lock', 'update', 'lock', 'insert', 'update', 'lock']
+
+Benchmark concluído.
