@@ -1,6 +1,6 @@
 """
 Script de Benchmark para MySQL
-Versão: 1.1
+Versão: 1.9
 Autor: Acáciolr-DBA
 
 Este script realiza operações de benchmark em um banco de dados MySQL,
@@ -14,6 +14,10 @@ Versões:
 1.3 - [25-04-2024]: Ajustes na função de drop do index
 1.4 - [25-04-2024]: Inclusão da rotina que simula lock na tabela
 1.5 - [25-04-2024]: Inclusão da rotina de geração das metricas em txt - BETA
+1.6 - [25-04-2024]: Atualização para criar arquivo de métricas antes de iniciar o benchmark
+1.7 - [25-04-2024]: Correção na geração e atualização do arquivo de métricas
+1.8 - [25-04-2024]: Inclusão das métricas do sistema no arquivo de métricas
+1.9 - [25-04-2024]: Integração das métricas de sistema ao script de benchmark
 
 """
 
@@ -21,7 +25,6 @@ import time
 import random
 import mysql.connector
 import psutil
-import os
 
 # Configurações do banco de dados
 db_config = {
@@ -30,6 +33,10 @@ db_config = {
     'host': '192.168.56.104',
     'database': 'mysql'  # Nome do banco de dados de benchmark
 }
+
+# Listas para armazenar as operações e métricas
+operations_list = []
+metrics_list = []
 
 # Função para criar uma conexão com o banco de dados
 def connect_to_db():
@@ -93,8 +100,14 @@ def calculate_metrics(start_time, end_time, total_operations, successful_operati
 # Função para obter métricas de sistema
 def get_system_metrics():
     cpu_percent = psutil.cpu_percent(interval=1)
-    memory_percent = psutil.virtual_memory().percent
-    return cpu_percent, memory_percent
+    cpu_count = psutil.cpu_count()
+
+    mem = psutil.virtual_memory()
+    total_mem = mem.total / (1024 * 1024)
+    available_mem = mem.available / (1024 * 1024)
+    used_mem = mem.used / (1024 * 1024)
+
+    return cpu_percent, cpu_count, total_mem, available_mem, used_mem
 
 # Função para executar operações de benchmark
 def run_benchmark():
@@ -114,15 +127,18 @@ def run_benchmark():
                 cpu_percent_list = []
                 memory_percent_list = []
                 
+                print("Métricas de Benchmark:")
+                
                 while time.time() < end_time:
                     operation = random.choice(['update', 'insert', 'delete', 'select', 'create_index', 'drop_index', 'lock'])
                     total_operations += 1
                     print("Operação:", operation)
+                    operations_list.append(operation)
                     
                     # Obter métricas do sistema
-                    cpu_percent, memory_percent = get_system_metrics()
+                    cpu_percent, cpu_count, total_mem, available_mem, used_mem = get_system_metrics()
                     cpu_percent_list.append(cpu_percent)
-                    memory_percent_list.append(memory_percent)
+                    memory_percent_list.append((total_mem, available_mem, used_mem))
                     
                     try:
                         if operation == 'update':
@@ -134,6 +150,7 @@ def run_benchmark():
                             cursor.execute("DELETE FROM benchmark_table WHERE id = %s", (random.randint(1, 100000),))
                         elif operation == 'select':
                             cursor.execute("SELECT * FROM benchmark_table WHERE id = %s", (random.randint(1, 100000),))
+                            cursor.fetchall()  # Consumir resultados
                         elif operation == 'create_index':
                             create_index(cursor)
                         elif operation == 'drop_index':
@@ -147,38 +164,30 @@ def run_benchmark():
                     except mysql.connector.Error as err:
                         print("Erro durante a operação:", err)
                     
-                    connection.commit()  # Garantir que as operações sejam aplicadas imediatamente
-                        
                     # Aguarda um pequeno intervalo antes de continuar
                     time.sleep(0.1)
                 
                 total_time, ops_per_sec, avg_exec_time = calculate_metrics(start_time, end_time, total_operations, successful_operations)
-                print("\nMétricas de Benchmark:")
-                print("Tempo total de execução:", total_time, "segundos")
-                print("Número total de operações:", total_operations)
-                print("Número de operações bem-sucedidas:", successful_operations)
-                print("Taxa de operações por segundo:", ops_per_sec)
-                print("Tempo médio de execução por operação:", avg_exec_time, "segundos")
+                metrics_list.append("\nMétricas finais:")
+                metrics_list.append("Tempo total de execução: {} segundos".format(total_time))
+                metrics_list.append("Número total de operações: {}".format(total_operations))
+                metrics_list.append("Número de operações bem-sucedidas: {}".format(successful_operations))
+                metrics_list.append("Taxa de operações por segundo: {}".format(ops_per_sec))
+                metrics_list.append("Tempo médio de execução por operação: {} segundos".format(avg_exec_time))
                 
                 # Métricas de sistema
-                print("\nMétricas de Sistema:")
-                print("Consumo médio de CPU:", sum(cpu_percent_list) / len(cpu_percent_list), "%")
-                print("Consumo médio de memória:", sum(memory_percent_list) / len(memory_percent_list), "%")
+                metrics_list.append("\nMétricas de Sistema:")
+                metrics_list.append("Consumo médio de CPU: {}%".format(sum(cpu_percent_list) / len(cpu_percent_list)))
+                metrics_list.append("Número de CPUs: {}".format(cpu_count))
+                for idx, (total_mem, available_mem, used_mem) in enumerate(memory_percent_list):
+                    metrics_list.append("Execução {}: ".format(idx + 1))
+                    metrics_list.append("  Total de memória: {} MB".format(total_mem))
+                    metrics_list.append("  Memória disponível: {} MB".format(available_mem))
+                    metrics_list.append("  Memória usada: {} MB".format(used_mem))
                 
-                # Escrever métricas em um arquivo de texto
-                with open("metrics.txt", "w") as f:
-                    f.write("Métricas de Benchmark:\n")
-                    f.write("Tempo total de execução: {} segundos\n".format(total_time))
-                    f.write("Número total de operações: {}\n".format(total_operations))
-                    f.write("Número de operações bem-sucedidas: {}\n".format(successful_operations))
-                    f.write("Taxa de operações por segundo: {}\n".format(ops_per_sec))
-                    f.write("Tempo médio de execução por operação: {} segundos\n".format(avg_exec_time))
-                    f.write("\nMétricas de Sistema:\n")
-                    f.write("Consumo médio de CPU: {}%\n".format(sum(cpu_percent_list) / len(cpu_percent_list)))
-                    f.write("Consumo médio de memória: {}%\n".format(sum(memory_percent_list) / len(memory_percent_list)))
-                
-                # Abrir o arquivo de métricas após gerá-lo
-                os.system("open metrics.txt")
+                print("\n".join(metrics_list))
+                print("\nOperações realizadas:", operations_list)
+                print("\nBenchmark concluído.")
         finally:
             connection.close()
 
