@@ -13,6 +13,7 @@ Versões:
 1.2 - [25-04-2024]: Inclusão do drop table na função "create_table"
 1.3 - [25-04-2024]: Ajustes na função de drop do index
 1.4 - [25-04-2024]: Inclusão da rotina que simula lock na tabela
+1.5 - [25-04-2024]: Inclusão da rotina de geração das metricas em txt - BETA
 
 """
 
